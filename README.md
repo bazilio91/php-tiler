@@ -2,6 +2,10 @@ Requirments:
 
 * GD
 
-Still bit buggy, IWP
+Image tiler class for custom Google maps or others
 
-Inspiered by https://github.com/mulka/tiler
+Dual licensed under the MIT and GPL licenses:
+[](http://www.opensource.org/licenses/mit-license.php)
+[](http://www.gnu.org/licenses/gpl.html)
+
+Inspired by https://github.com/mulka/tiler
