@@ -1,6 +1,13 @@
-Requirments:
+Requirements for Tiler:
 
 * GD
+
+Requirements for TilerImagick:
+
+* Imagick (http://www.php.net/manual/en/book.imagick.php)
+
+Note:
+Creation of after_thumbnail.png fixed in Imagick 3.1.0RC2
 
 Image tiler class for custom Google maps or others
 

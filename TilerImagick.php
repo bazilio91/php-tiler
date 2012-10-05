@@ -9,7 +9,7 @@
  * @link http://www.gnu.org/licenses/gpl.html
  *
  */
-class Tiler
+class TilerImagick
 {
 	private $srcWidth;
 	private $srcHeight;
@@ -36,9 +36,12 @@ class Tiler
 		$this->dstFolder = $dstFolder;
 
 		$this->logEnabled = $log;
-		list($this->srcWidth, $this->srcHeight) = getimagesize($this->srcFilename);
-		$this->log("Image size: w = {$this->srcWidth}, h = {$this->srcHeight}");
+		$image = new Imagick($this->srcFilename);
+		$this->srcWidth = $image->getimagewidth();
+		$this->srcHeight = $image->getimageheight();
+		$image->destroy();
 
+		$this->log("Image size: w = $this->srcWidth, h = $this->srcHeight");
 		$maxLength = max($this->srcHeight, $this->srcWidth);
 
 		$this->levels = (int)ceil(log($maxLength) / log(2)) - 7;
@@ -56,14 +59,11 @@ class Tiler
 
 		$level = $this->levels - 1;
 		$filename = sprintf("images/image%d.jpg", $level);
-		$image = imagecreatefromjpeg($this->srcFilename);
-		$outImage = imagecreatetruecolor($w, $h);
 
-		if (!$status = imagecopyresampled($outImage, $image, (int)ceil($w - $this->srcWidth + 1) / 2, (int)ceil($h - $this->srcHeight + 1) / 2, 0, 0, $this->srcWidth, $this->srcHeight, $this->srcWidth, $this->srcHeight))
-			throw new TilerException("Error adding borders", $status);
+		$image = new Imagick($this->srcFilename);
+		$image->thumbnailimage($w, $h, true, true);
 
-		imagejpeg($outImage, $filename, 100);
-		imagedestroy($image);
+		$image->writeimage($filename);
 		for ($level = $this->levels - 1; $level >= 0;) {
 			$this->log("Tiling level $level, h = $h, w = $w");
 			$max = (int)pow(2, $level);
@@ -76,11 +76,10 @@ class Tiler
 
 					$name = sprintf("images/tile-%d-%d-%d.jpg", $level, $j, $i);
 
-					$tileImage = imagecreatetruecolor(256, 256);
-					if (!$status = imagecopyresampled($tileImage, (isset($levelImage)) ? $levelImage : $outImage, 0, 0, $x, $y, 256, 256, 256, 256))
-						throw new TilerException("Error tiling level $level", $status);
-					imagejpeg($tileImage, $name, 100);
-					imagedestroy($tileImage);
+					$tileImage = $image->getimage();
+					$tileImage->cropImage(256, 256, $x, $y);
+					$tileImage->writeImage($name);
+					$tileImage->destroy();
 					$n++;
 					$x += 256;
 				}
@@ -93,10 +92,8 @@ class Tiler
 				$this->log("Shrinking for level $level, h = $h, w = $w");
 
 				$filename = sprintf("images/image%d.jpg", $level);
-				$levelImage = imagecreatetruecolor($w, $h);
-				if (!$status = imagecopyresampled($levelImage, $outImage, 0, 0, 0, 0, $w, $h, $wMax, $wMax))
-					throw new TilerException("Error shrinking level $level", $status);
-				imagejpeg($levelImage, $filename, 100);
+				$image->thumbnailimage($w, $h, true, true);
+				$image->writeimage($filename);
 			}
 		}
 	}
