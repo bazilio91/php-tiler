@@ -16,6 +16,8 @@ class TilerImagick
 	private $srcFilename;
 	private $dstFolder;
 	private $logEnabled = false;
+	private $fileName = "image";
+	private $fileExt = "jpg";
 	public $levels;
 
 
@@ -31,6 +33,11 @@ class TilerImagick
 			throw new TilerException("Input file not found", 1);
 		$this->srcFilename = $srcFilename;
 
+		$this->fileName = pathinfo($srcFilename,PATHINFO_FILENAME);
+		$this->fileExt = pathinfo($srcFilename,PATHINFO_EXTENSION);
+
+		if(!$dstFolder)
+			$dstFolder = pathinfo($srcFilename,PATHINFO_DIRNAME);
 		if (!is_dir($dstFolder))
 			throw new TilerException("Destination folder not found", 1);
 		$this->dstFolder = $dstFolder;
@@ -58,7 +65,7 @@ class TilerImagick
 		$this->log("Adding borders with new h = $h, w = $w");
 
 		$level = $this->levels - 1;
-		$filename = sprintf("images/image%d.jpg", $level);
+		$filename = sprintf("{$this->dstFolder}/{$this->fileName}-%d.{$this->fileExt}", $level);
 
 		$image = new Imagick($this->srcFilename);
 		$image->thumbnailimage($w, $h, true, true);
@@ -74,7 +81,8 @@ class TilerImagick
 				for ($i = 0; $i < $max; $i++) {
 					if($this->logEnabled) echo ".";
 
-					$name = sprintf("images/tile-%d-%d-%d.jpg", $level, $j, $i);
+					$name = sprintf("{$this->dstFolder}/{$this->fileName}-tile-%d-%d-%d.{$this->fileExt}", $level, $j, $i);
+					echo $name . "\n";
 
 					$tileImage = $image->getimage();
 					$tileImage->cropImage(256, 256, $x, $y);
@@ -91,7 +99,7 @@ class TilerImagick
 				$w = $h = $h / 2;
 				$this->log("Shrinking for level $level, h = $h, w = $w");
 
-				$filename = sprintf("images/image%d.jpg", $level);
+				$filename = sprintf("{$this->dstFolder}/{$this->fileName}-%d.{$this->fileExt}", $level);
 				$image->thumbnailimage($w, $h, true, true);
 				$image->writeimage($filename);
 			}
