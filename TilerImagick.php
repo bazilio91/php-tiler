@@ -27,7 +27,7 @@ class TilerImagick
 	 * @param bool $log Enable log
 	 * @throws TilerException
 	 */
-	function __construct($srcFilename, $dstFolder, $log = false)
+	function __construct($srcFilename, $dstFolder, $log = true)
 	{
 		if (!is_file($srcFilename))
 			throw new TilerException("Input file not found", 1);
@@ -67,10 +67,8 @@ class TilerImagick
 		$level = $this->levels - 1;
 		$filename = sprintf("{$this->dstFolder}/{$this->fileName}-%d.{$this->fileExt}", $level);
 
-		$image = new Imagick($this->srcFilename);
-		$image->thumbnailimage($w, $h, true, true);
+		exec("convert {$this->srcFilename} -thumbnail {$w}x{$h}! {$filename}");
 
-		$image->writeimage($filename);
 		for ($level = $this->levels - 1; $level >= 0;) {
 			$this->log("Tiling level $level, h = $h, w = $w");
 			$max = (int)pow(2, $level);
@@ -82,12 +80,8 @@ class TilerImagick
 					if($this->logEnabled) echo ".";
 
 					$name = sprintf("{$this->dstFolder}/{$this->fileName}-tile-%d-%d-%d.{$this->fileExt}", $level, $j, $i);
-					echo $name . "\n";
 
-					$tileImage = $image->getimage();
-					$tileImage->cropImage(256, 256, $x, $y);
-					$tileImage->writeImage($name);
-					$tileImage->destroy();
+					exec("convert $filename -crop 256x256+$x+$y $name");
 					$n++;
 					$x += 256;
 				}
@@ -100,8 +94,7 @@ class TilerImagick
 				$this->log("Shrinking for level $level, h = $h, w = $w");
 
 				$filename = sprintf("{$this->dstFolder}/{$this->fileName}-%d.{$this->fileExt}", $level);
-				$image->thumbnailimage($w, $h, true, true);
-				$image->writeimage($filename);
+				exec("convert {$this->srcFilename} -thumbnail {$w}x{$h}! {$filename}");
 			}
 		}
 	}
