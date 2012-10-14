@@ -67,7 +67,7 @@ class TilerImagick
 		$level = $this->levels - 1;
 		$filename = sprintf("{$this->dstFolder}/{$this->fileName}-%d.{$this->fileExt}", $level);
 
-		exec("convert {$this->srcFilename} -thumbnail '{$w}x{$h}>' -gravity center -extent {$w}x{$h} {$filename}");
+		exec("convert {$this->srcFilename} -size {$w}x{$h} -thumbnail {$w}x{$h} -gravity center -extent {$w}x{$h} {$filename}");
 
 		for ($level = $this->levels - 1; $level >= 0;) {
 			$this->log("Tiling level $level, h = $h, w = $w");
@@ -94,7 +94,7 @@ class TilerImagick
 				$this->log("Shrinking for level $level, h = $h, w = $w");
 
 				$filename = sprintf("{$this->dstFolder}/{$this->fileName}-%d.{$this->fileExt}", $level);
-				exec("convert {$this->srcFilename} -thumbnail {$w}x{$h}! {$filename}");
+				exec("convert {$this->srcFilename} -size {$w}x{$h} -thumbnail {$w}x{$h} -gravity center -extent {$w}x{$h} {$filename}");
 			}
 		}
 	}
